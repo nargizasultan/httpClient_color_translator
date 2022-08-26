@@ -1,0 +1,16 @@
+server:
+  error:
+    include-message: always
+  port: 9000
+spring:
+  datasource:
+    password: root
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+
