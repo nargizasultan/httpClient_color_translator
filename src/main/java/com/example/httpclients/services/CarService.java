@@ -2,7 +2,11 @@ package com.example.httpclients.services;
 
 import com.example.httpclients.models.Car;
 import com.example.httpclients.repositories.CarRepository;
+import com.google.cloud.translate.Translate;
+import com.google.cloud.translate.TranslateOptions;
+import com.google.cloud.translate.Translation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,12 +18,12 @@ import java.util.List;
 public class CarService {
 
     private final CarRepository carRepository;
-    private final Translator translator;
+
+
+    @Value("${google.translate.key}")
+    private String apiKey;
 
     private final RestTemplate restTemplate = new RestTemplate();
-
-    record SimpleResponse(String message) {
-    }
 
     public record CarSaveRequest(String name, String color) {
     }
@@ -27,15 +31,21 @@ public class CarService {
     public record CarSaveResponse(Long id, String name, String color) {
     }
 
-    public record ColorResponse(String name) {
+    public record ColorResponse(String paletteTitle) {
     }
 
     public List<CarSaveResponse> save(CarSaveRequest carSaveRequest) throws Exception {
 
         List<CarSaveResponse> list = new ArrayList<>();
-        ColorResponse color = restTemplate.getForObject("https://colornames.org/search/json/?hex=" + carSaveRequest.color, ColorResponse.class);
-        String translate = translator.translate("en", "ru", color.name);
-        Car car = new Car(carSaveRequest.name, translate);
+        ColorResponse color = restTemplate.getForObject("https://api.color.pizza/v1/?values=" + carSaveRequest.color, ColorResponse.class);
+
+        Translate translate = TranslateOptions.newBuilder().setApiKey(apiKey).build().getService();
+
+        Translation translation = translate.translate(color.paletteTitle, Translate.TranslateOption.targetLanguage("ru"));
+
+        String translatedText = translation.getTranslatedText();
+
+        Car car = new Car(carSaveRequest.name, translatedText);
         carRepository.save(car);
         List<Car> all = carRepository.findAll();
         for (Car c : all) {

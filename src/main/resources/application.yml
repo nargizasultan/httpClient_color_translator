@@ -14,3 +14,6 @@ spring:
       ddl-auto: create
     show-sql: true
 
+google:
+  translate:
+    key: xxxxxxxxxxxx
